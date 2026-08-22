@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from auth.schemas import RegisterRequest
-from auth.service import register_user
+from auth.schemas import RegisterRequest, LoginRequest, TokenResponse
+from auth.service import register_user, login_user
 from database import get_db
 
 
@@ -34,3 +34,25 @@ def register(
         "email": user.email,
         "created_at": user.created_at,
     }
+
+
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+)
+def login(
+    data: LoginRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+        return login_user(
+            db,
+            data.email,
+            data.password,
+        )
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        )

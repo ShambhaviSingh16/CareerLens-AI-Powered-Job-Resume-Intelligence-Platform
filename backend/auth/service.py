@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from models import User
 from auth.security import hash_password, verify_password, create_access_token
@@ -23,7 +24,11 @@ def register_user(
     )
 
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise ValueError("Email is already registered") from exc
     db.refresh(user)
 
     return user

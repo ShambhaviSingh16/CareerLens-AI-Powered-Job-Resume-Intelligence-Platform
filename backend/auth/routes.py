@@ -4,12 +4,19 @@ from sqlalchemy.orm import Session
 from auth.schemas import RegisterRequest, LoginRequest, TokenResponse
 from auth.service import register_user, login_user
 from database import get_db
+from auth.dependencies import get_current_user
+from models import User
 
 
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"],
 )
+
+
+@router.get("/me")
+def me(user: User = Depends(get_current_user)):
+    return {"id": user.id, "email": user.email}
 
 
 @router.post(

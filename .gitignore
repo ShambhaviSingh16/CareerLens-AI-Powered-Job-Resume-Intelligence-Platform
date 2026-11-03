@@ -10,6 +10,9 @@ backend/venv/
 # Environment variables
 .env
 *.env
+*.db
+*.db-shm
+*.db-wal
 
 # IDE
 .vscode/
@@ -28,3 +31,4 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+.preview/

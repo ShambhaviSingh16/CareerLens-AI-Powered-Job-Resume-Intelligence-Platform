@@ -6,7 +6,7 @@ from jose import jwt
 from pwdlib import PasswordHash
 
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 

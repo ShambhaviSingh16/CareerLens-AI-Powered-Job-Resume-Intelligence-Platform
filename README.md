@@ -116,7 +116,7 @@ npm run test:e2e
 
 The smoke script checks the real database-backed account lifecycle and cleans up its account. Browser tests cover desktop/mobile layouts, example interactions, keyboard report tabs, export, login, form reset, and account deletion. They make no AI calls.
 
-An explicitly opted-in live smoke check is available with `python scripts/smoke.py --live-analysis` using the backend Python environment. It sends one fictional PDF to the configured provider, verifies a saved report, and deletes its report/account. This check passed locally, alongside **52 Python tests (93% coverage)** and **six real browser tests**. It is deliberately excluded from routine CI.
+An explicitly opted-in live smoke check is available with `python scripts/smoke.py --live-analysis` using the backend Python environment. It sends one fictional PDF to the configured provider, verifies a saved report, and deletes its report/account. This check passed locally, alongside **53 Python tests (93% coverage)** and **six real browser tests**. It is deliberately excluded from routine CI.
 
 From `backend` with its development dependencies installed:
 

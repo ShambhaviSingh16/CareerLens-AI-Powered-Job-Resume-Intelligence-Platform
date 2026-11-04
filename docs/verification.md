@@ -4,7 +4,7 @@ This record distinguishes observed local results from configured or unperformed 
 
 ## Observed
 
-- 52 Python tests passed locally, including authentication, ownership, parsing, evidence validation, failure handling, quotas, streamed body limits, account deletion, retention, SPA routing, and evaluation contracts. The coverage run reported 93% statement coverage; see the commands in the root README to reproduce it.
+- 53 Python tests passed locally, including authentication, ownership, parsing, evidence validation, failure handling, quotas, streamed body limits, account deletion, retention, SPA routing, and evaluation contracts. The coverage run reported 93% statement coverage; see the commands in the root README to reproduce it.
 - Ruff checks (`--select F`), frontend ESLint, and the production Vite build passed.
 - The full Docker image built under Docker Engine in Ubuntu WSL2 with Python 3.12 and Node 22. Compose started PostgreSQL 16 and the app, and the app/database health checks passed.
 - The real container-backed smoke script passed registration, login, authorization, history, SPA fallback, and account cleanup without an AI call.

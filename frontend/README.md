@@ -15,6 +15,8 @@ The default API base is `http://localhost:8000`. A local `.env` can set `VITE_AP
 
 The root Dockerfile builds with `VITE_API_BASE_URL=/api` and copies the static assets into the Python image. No Node process is needed in the runtime container. Standalone static hosting remains supported by `vercel.json`, but is not the primary container deployment path.
 
+For Vercel, select **Root Directory: `frontend`**, **Framework: Vite**, and **Output Directory: `dist`**. See the [deployment and 500-error guide](../docs/vercel.md), including the public API requirement for account and AI features.
+
 ## Routes
 
 - `/`: landing and interactive illustrative resume annotations.

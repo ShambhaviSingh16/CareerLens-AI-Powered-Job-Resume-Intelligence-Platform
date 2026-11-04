@@ -137,6 +137,8 @@ The dependency lock/constraints record the tested versions. [Verification record
 
 ## CI/CD and cloud deployment
 
+For the existing Vercel frontend, use [these project settings and troubleshooting steps](docs/vercel.md). Its project root must be `frontend` with the Vite preset. Public account/AI features additionally need a hosted backend; local Docker is not reachable by public visitors.
+
 The GitHub Actions workflow checks Python code/tests, migration consistency on PostgreSQL, evaluation contracts, frontend lint/build, Bicep compilation, a real Compose smoke test, and browser tests.
 
 **Ordinary pushes and pull requests do not publish images or deploy cloud resources.** A manual workflow dispatch on `main` can publish the same image artifact that passed the checks. Updating an existing Azure app additionally needs an explicitly enabled repository variable, an Azure GitHub environment, and OIDC configuration.

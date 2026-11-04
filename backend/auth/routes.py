@@ -6,6 +6,10 @@ from auth.service import register_user, login_user
 from database import get_db
 from auth.dependencies import get_current_user
 from models import User
+from models import Analysis, AnalysisAttempt, Job, Resume
+from sqlalchemy import delete
+from auth.schemas import DeleteAccountRequest
+from auth.security import verify_password
 
 
 router = APIRouter(
@@ -17,6 +21,16 @@ router = APIRouter(
 @router.get("/me")
 def me(user: User = Depends(get_current_user)):
     return {"id": user.id, "email": user.email}
+
+
+@router.delete("/me", status_code=204)
+def delete_account(data: DeleteAccountRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not verify_password(data.password, user.password_hash):
+        raise HTTPException(403, "The password is incorrect.")
+    for model in (Analysis, AnalysisAttempt, Resume, Job):
+        db.execute(delete(model).where(model.user_id == user.id))
+    db.execute(delete(User).where(User.id == user.id))
+    db.commit()
 
 
 @router.post(

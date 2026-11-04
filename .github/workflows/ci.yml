@@ -1,8 +1,32 @@
-name: Checks
-on: [push, pull_request]
+name: Verify and deliver
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      publish_image:
+        description: Publish the tested image to GHCR (main branch only)
+        type: boolean
+        default: false
+      deploy_azure:
+        description: Update the existing Azure app after all checks pass
+        type: boolean
+        default: false
+permissions:
+  contents: read
 jobs:
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: careerlens
+          POSTGRES_USER: careerlens
+          POSTGRES_PASSWORD: ci-only-password
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U careerlens" --health-interval 5s --health-timeout 5s --health-retries 10
     defaults:
       run:
         working-directory: backend
@@ -14,16 +38,26 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements*.txt
       - run: pip install -r requirements-dev.txt
-      - run: pytest -q
-      - name: Verify initial migration and model consistency
+      - run: ruff check --select F .
+      - run: pytest -q --cov=. --cov-fail-under=85 --cov-report=term-missing --cov-report=xml
+      - run: python -m evaluation.run --mode baseline --output evaluation/results/baseline-ci.json
+      - name: Verify migrations on PostgreSQL
         env:
-          DATABASE_URL: sqlite:///./migration-check.db
+          DATABASE_URL: postgresql+psycopg2://careerlens:ci-only-password@localhost:5432/careerlens
           JWT_SECRET: ci-only-test-secret
         run: |
           alembic upgrade head
           alembic check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-evidence
+          path: |
+            backend/coverage.xml
+            backend/evaluation/results/baseline-ci.json
+          retention-days: 7
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
@@ -37,3 +71,103 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
+  infrastructure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: az bicep build --file infra/azure/main.bicep
+  containers:
+    needs: [backend, frontend, infrastructure]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: python scripts/setup_local.py
+      - run: docker compose up --build --wait --wait-timeout 180
+      - run: python scripts/smoke.py
+      - run: npm ci --prefix frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npm run test:e2e --prefix frontend
+      - name: Save the tested image for publication
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_image && github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p artifacts
+          docker save careerlens:local | gzip > artifacts/careerlens-image.tar.gz
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_image && github.ref == 'refs/heads/main'
+        with:
+          name: tested-container
+          path: artifacts/careerlens-image.tar.gz
+          compression-level: 0
+          retention-days: 1
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failures
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          retention-days: 3
+      - name: Container logs and cleanup
+        if: always()
+        run: |
+          docker compose logs --no-color
+          docker compose down --volumes
+  publish:
+    needs: containers
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_image && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.name }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: tested-container
+          path: artifacts
+      - name: Publish the image that passed the checks
+        id: image
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}"
+          printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker load -i artifacts/careerlens-image.tar.gz
+          docker tag careerlens:local "$IMAGE"
+          docker push "$IMAGE"
+          echo "name=$IMAGE" >> "$GITHUB_OUTPUT"
+  azure:
+    needs: publish
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_azure && vars.ENABLE_AZURE_DEPLOY == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: azure-demo
+    concurrency: azure-demo
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Update existing app only
+        env:
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          CONTAINER_APP: ${{ vars.AZURE_CONTAINER_APP }}
+          IMAGE: ${{ needs.publish.outputs.image }}
+        run: |
+          az containerapp update --resource-group "$RESOURCE_GROUP" --name "$CONTAINER_APP" --image "$IMAGE" --output none
+          HOST=$(az containerapp show --resource-group "$RESOURCE_GROUP" --name "$CONTAINER_APP" --query properties.configuration.ingress.fqdn -o tsv)
+          curl --fail --retry 20 --retry-all-errors --retry-delay 10 "https://$HOST/health/database"

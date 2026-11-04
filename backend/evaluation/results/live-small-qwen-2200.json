@@ -1,0 +1,152 @@
+{
+  "mode": "live",
+  "dataset_version": "1.0",
+  "prompt_version": "1.1",
+  "prompt_hash": "3fbcc4e772312192",
+  "created_at": "2026-11-03T23:11:47.204480+00:00",
+  "model": "qwen/qwen3.8-27b",
+  "metrics": {
+    "cases": 2,
+    "requirements": 4,
+    "rejected_cases": 0,
+    "valid_response_rate": 1.0,
+    "requirement_recall": 1.0,
+    "requirement_precision": 1.0,
+    "label_accuracy_all_requirements": 1.0,
+    "priority_accuracy_aligned": 1.0,
+    "macro_f1": 0.6667,
+    "per_class_f1": {
+      "strong": 1.0,
+      "partial": 0,
+      "missing": 1.0
+    },
+    "score_mae_valid_cases": 0.0,
+    "confusion": {
+      "strong": {
+        "strong": 3,
+        "partial": 0,
+        "missing": 0,
+        "unmatched": 0
+      },
+      "partial": {
+        "strong": 0,
+        "partial": 0,
+        "missing": 0,
+        "unmatched": 0
+      },
+      "missing": {
+        "strong": 0,
+        "partial": 0,
+        "missing": 1,
+        "unmatched": 0
+      }
+    }
+  },
+  "predictions": {
+    "direct-match": {
+      "summary": "The candidate demonstrates a direct match for the core technical requirements of the job description. The resume explicitly states experience in building Python services and writing automated tests using pytest, which aligns perfectly with the mandatory requirements for Python development and automated testing. There are no significant gaps regarding the stated requirements, and the evidence provided is concrete and specific.",
+      "skills": [
+        {
+          "skill": "Python Development",
+          "requirement_quote": "Python development is required.",
+          "required": true,
+          "status": "strong",
+          "evidence": "Built Python services.",
+          "explanation": "The resume explicitly states that the candidate built Python services, which is direct evidence of Python development experience."
+        },
+        {
+          "skill": "Automated Testing",
+          "requirement_quote": "Automated testing is required.",
+          "required": true,
+          "status": "strong",
+          "evidence": "Wrote automated tests using pytest.",
+          "explanation": "The resume explicitly mentions writing automated tests using pytest, providing direct evidence of automated testing experience."
+        }
+      ],
+      "suggestions": [],
+      "match_score": 100,
+      "document_checks": [
+        {
+          "label": "Experience or projects heading",
+          "found": false
+        },
+        {
+          "label": "Education heading",
+          "found": false
+        },
+        {
+          "label": "Skills heading",
+          "found": false
+        },
+        {
+          "label": "Email address",
+          "found": false
+        }
+      ],
+      "model": "qwen/qwen3.8-27b",
+      "rubric_version": "1.0",
+      "prompt_version": "1.1",
+      "prompt_hash": "3fbcc4e772312192",
+      "duration_ms": 3302,
+      "usage": {
+        "prompt_tokens": 787,
+        "completion_tokens": 257,
+        "total_tokens": 1044
+      },
+      "score_explanation": "Required skills count twice as much as preferred skills. Strong = 1, partial = 0.5, missing = 0. The weighted percentage is an estimated fit, not a hiring prediction."
+    },
+    "semantic-testing": {
+      "summary": "The resume provides direct evidence of automated testing using pytest, which satisfies the mandatory requirement. There is no evidence of Docker experience, which is a preferred qualification. The resume is concise and focused on the specific testing task.",
+      "skills": [
+        {
+          "skill": "Automated Testing",
+          "requirement_quote": "Automated testing is required.",
+          "required": true,
+          "status": "strong",
+          "evidence": "Validated every endpoint with parametrized pytest cases and regression assertions.",
+          "explanation": "The use of pytest for validating endpoints and regression assertions is direct evidence of automated testing experience."
+        },
+        {
+          "skill": "Docker",
+          "requirement_quote": "Docker experience is preferred.",
+          "required": false,
+          "status": "missing",
+          "evidence": null,
+          "explanation": "The resume does not mention Docker or containerization technologies."
+        }
+      ],
+      "suggestions": [],
+      "match_score": 67,
+      "document_checks": [
+        {
+          "label": "Experience or projects heading",
+          "found": false
+        },
+        {
+          "label": "Education heading",
+          "found": false
+        },
+        {
+          "label": "Skills heading",
+          "found": false
+        },
+        {
+          "label": "Email address",
+          "found": false
+        }
+      ],
+      "model": "qwen/qwen3.8-27b",
+      "rubric_version": "1.0",
+      "prompt_version": "1.1",
+      "prompt_hash": "3fbcc4e772312192",
+      "duration_ms": 643,
+      "usage": {
+        "prompt_tokens": 790,
+        "completion_tokens": 229,
+        "total_tokens": 1019
+      },
+      "score_explanation": "Required skills count twice as much as preferred skills. Strong = 1, partial = 0.5, missing = 0. The weighted percentage is an estimated fit, not a hiring prediction."
+    }
+  },
+  "limitations": "Small synthetic challenge set; manual labels need independent review. Baseline has oracle requirement extraction. No claim about hiring outcomes or general accuracy."
+}

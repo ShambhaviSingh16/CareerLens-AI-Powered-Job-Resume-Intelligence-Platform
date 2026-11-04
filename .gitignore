@@ -32,3 +32,12 @@ dist/
 build/
 *.egg-info/
 .preview/
+.tools/
+artifacts/
+infra/azure/parameters.local.json
+infra/azure/main.json
+backend/evaluation/results/latest.json
+playwright-report/
+test-results/
+coverage.xml
+.ruff_cache/

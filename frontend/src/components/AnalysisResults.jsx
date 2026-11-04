@@ -8,6 +8,15 @@ export default function AnalysisResults({ analysis }) {
   const [tab, setTab] = useState("skills");
   const [filter, setFilter] = useState("all");
   const id = useId();
+  function exportReport() {
+    const blob = new Blob([JSON.stringify(analysis, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "careerlens-report.json";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
   function navigateTabs(event) {
     const tabs = ["skills", "edits", "checks"];
     const index = tabs.indexOf(tab);
@@ -20,6 +29,7 @@ export default function AnalysisResults({ analysis }) {
   const counts = Object.fromEntries(["strong", "partial", "missing"].map(status => [status, result.skills.filter(skill => skill.status === status).length]));
   const skills = result.skills.filter(skill => filter === "all" || skill.status === filter);
   return <section className="report" aria-label="Analysis results">
+    <div className="report-toolbar"><span className="eyebrow">YOUR MATCH REPORT</span><button onClick={exportReport}>Download report ↓</button></div>
     <div className="report-summary">
       <div className="score-ring"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" className="ring-track"/><circle cx="50" cy="50" r="42" className="ring-fill" strokeDasharray="263.9" strokeDashoffset={263.9 * (1 - result.match_score / 100)}/></svg><div><strong>{result.match_score}<small>%</small></strong><span>SKILL FIT</span></div></div>
       <div className="report-summary-copy"><p className="eyebrow">YOUR MATCH, IN CONTEXT</p><h2>{analysis.job_title}</h2><p>{result.summary}</p><span className="report-file"><Icon name="file" size={14}/>{analysis.filename}</span></div>

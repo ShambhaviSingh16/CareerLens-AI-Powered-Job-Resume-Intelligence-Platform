@@ -4,13 +4,13 @@ from pathlib import PurePosixPath
 from threading import BoundedSemaphore
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text as sql_text
 from sqlalchemy.orm import Session
 
 from auth.dependencies import get_current_user
 from database import get_db
 from matching.service import AnalysisError, analyze_resume
-from models import Analysis, AnalysisAttempt, Job, Resume, User
+from models import Analysis, AnalysisAttempt, DailyUsage, Job, Resume, User
 from resumes.parser import MAX_UPLOAD_BYTES, extract_text
 
 router = APIRouter(prefix="/analyses", tags=["Analyses"])
@@ -31,15 +31,17 @@ def create_analysis(
     if not analysis_slot.acquire(blocking=False):
         raise HTTPException(429, "An analysis is already running. Please try again shortly.")
     try:
+        if db.get_bind().dialect.name == "postgresql":
+            # Serialize quota reservations even during overlapping cloud revisions.
+            db.execute(sql_text("SELECT pg_advisory_xact_lock(42819001)"))
         day_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         count = db.scalar(select(func.count()).select_from(AnalysisAttempt).where(
             AnalysisAttempt.user_id == user.id, AnalysisAttempt.created_at >= day_start,
         ))
         if count >= int(os.getenv("ANALYSES_PER_DAY", "5")):
             raise HTTPException(429, "Your daily analysis limit was reached. Try again tomorrow (UTC).")
-        global_count = db.scalar(select(func.count()).select_from(AnalysisAttempt).where(
-            AnalysisAttempt.created_at >= day_start,
-        ))
+        daily_usage = db.get(DailyUsage, day_start.date())
+        global_count = daily_usage.attempts if daily_usage else 0
         if global_count >= int(os.getenv("GLOBAL_ANALYSES_PER_DAY", "20")):
             raise HTTPException(429, "The demo's daily AI allowance was reached. Try the sample analysis.")
         filename = PurePosixPath((resume.filename or "resume").replace("\\", "/")).name[:255]
@@ -52,6 +54,10 @@ def create_analysis(
         # Reserve a provider attempt before calling out. Deleting results does not reset quota.
         user_id = user.id
         db.add(AnalysisAttempt(user_id=user_id))
+        if daily_usage is None:
+            db.add(DailyUsage(day=day_start.date(), attempts=1))
+        else:
+            daily_usage.attempts += 1
         db.commit()
         try:
             result = analyze_resume(text, job_description.strip())

@@ -62,6 +62,8 @@ def test_global_limit_applies_across_users(client, auth, resume_bytes, monkeypat
     first, second = auth(), auth("second@example.com")
     assert upload(client, first, resume_bytes).status_code == 201
     assert upload(client, second, resume_bytes).status_code == 429
+    assert client.request("DELETE", "/auth/me", headers=first, json={"password": "test-password-123"}).status_code == 204
+    assert upload(client, second, resume_bytes).status_code == 429
 
 
 def test_missing_key_is_actionable(client, auth, resume_bytes, monkeypatch):

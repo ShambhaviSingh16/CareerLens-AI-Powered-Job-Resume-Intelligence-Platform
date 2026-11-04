@@ -1,0 +1,7 @@
+[run]
+omit =
+    venv/*
+    tests/*
+    migrations/*
+[report]
+show_missing = True

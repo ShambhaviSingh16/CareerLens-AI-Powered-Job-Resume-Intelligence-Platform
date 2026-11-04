@@ -1,16 +1,41 @@
-# React + Vite
+# CareerLens frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19, Vite, React Router, and CSS/Tailwind. This is the interface for the Python/FastAPI application.
 
-Currently, two official plugins are available:
+## Develop
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Run the backend first, then:
 
-## React Compiler
+```bash
+npm ci
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The default API base is `http://localhost:8000`. A local `.env` can set `VITE_API_BASE_URL`; never place provider/database secrets in Vite variables.
 
-## Expanding the ESLint configuration
+The root Dockerfile builds with `VITE_API_BASE_URL=/api` and copies the static assets into the Python image. No Node process is needed in the runtime container. Standalone static hosting remains supported by `vercel.json`, but is not the primary container deployment path.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Routes
+
+- `/`: landing and interactive illustrative resume annotations.
+- `/sample`: fictional report, requiring no account/provider call.
+- `/signup`, `/login`: account forms.
+- `/dashboard`: protected upload, history, report inspection, and deletion.
+- `/settings`: password-confirmed account deletion.
+
+## Checks
+
+```bash
+npm run lint
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
+
+Browser tests expect the full stack at `http://127.0.0.1:8080`. Set `PLAYWRIGHT_BASE_URL` to change it. `PLAYWRIGHT_API_URL` can point tests at a separate native API. `PLAYWRIGHT_CHROME_PATH` can select an existing local Chrome binary instead of downloading Chromium.
+
+Tests use real registration/login/history/deletion, unique synthetic accounts, and cleanup. They do not call the LLM. Desktop and mobile projects run serially to respect authentication throttling. Traces and screenshots are retained on failure in ignored folders; do not publish them if you rerun tests with personal data.
+
+## Design
+
+Warm paper surfaces, ink typography, restrained orange actions, and green/amber status cues. Status labels accompany colors. Report tabs support arrow/Home/End keys, forms have associated labels, and reduced-motion preferences are respected. The sample explicitly distinguishes illustrative content from live analysis.

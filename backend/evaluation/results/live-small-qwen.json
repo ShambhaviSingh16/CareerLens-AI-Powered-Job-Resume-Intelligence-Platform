@@ -1,0 +1,52 @@
+{
+  "mode": "live",
+  "dataset_version": "1.0",
+  "prompt_version": "1.1",
+  "prompt_hash": "3fbcc4e772312192",
+  "created_at": "2026-11-03T23:07:30.661029+00:00",
+  "model": "qwen/qwen3.8-27b",
+  "metrics": {
+    "cases": 2,
+    "requirements": 4,
+    "rejected_cases": 2,
+    "valid_response_rate": 0.0,
+    "requirement_recall": 0.0,
+    "requirement_precision": 0,
+    "label_accuracy_all_requirements": 0.0,
+    "priority_accuracy_aligned": null,
+    "macro_f1": 0.0,
+    "per_class_f1": {
+      "strong": 0.0,
+      "partial": 0,
+      "missing": 0.0
+    },
+    "score_mae_valid_cases": null,
+    "confusion": {
+      "strong": {
+        "strong": 0,
+        "partial": 0,
+        "missing": 0,
+        "unmatched": 3
+      },
+      "partial": {
+        "strong": 0,
+        "partial": 0,
+        "missing": 0,
+        "unmatched": 0
+      },
+      "missing": {
+        "strong": 0,
+        "partial": 0,
+        "missing": 0,
+        "unmatched": 1
+      }
+    }
+  },
+  "predictions": {
+    "direct-match": {
+      "error": "The AI free-tier limit was reached. Please try again later.",
+      "status_code": 429
+    }
+  },
+  "limitations": "Small synthetic challenge set; manual labels need independent review. Baseline has oracle requirement extraction. No claim about hiring outcomes or general accuracy."
+}

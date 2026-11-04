@@ -37,6 +37,14 @@ def test_whitespace_quotation_rejected(model_output):
         ModelAnalysis.model_validate(model_output)
 
 
+def test_rewrite_cannot_introduce_invented_metrics(model_output):
+    model_output["suggestions"] = [{"original": "Built Python APIs with FastAPI and SQLite for a library.",
+                                   "rewrite": "Built Python APIs serving 5000 users with FastAPI.",
+                                   "reason": "Make the accomplishment clearer."}]
+    with pytest.raises(AnalysisError, match="unsupported number"):
+        validate_evidence(ModelAnalysis.model_validate(model_output), RESUME_TEXT, JOB_TEXT)
+
+
 @pytest.mark.parametrize("change", ["resume", "job", "duplicate", "rewrite", "missing"])
 def test_invented_evidence_rejected(model_output, change):
     if change == "resume":
@@ -55,6 +63,7 @@ def test_invented_evidence_rejected(model_output, change):
 
 @pytest.mark.parametrize("payload,status,expected", [
     ({}, 429, 429), ({}, 401, 503), ({}, 500, 502),
+    ({"choices": [None]}, 200, 502), ([], 200, 502),
     ({"choices": [{"finish_reason": "length", "message": {"content": "{}"}}]}, 200, 502),
     ({"choices": [{"finish_reason": "stop", "message": {"content": "not json"}}]}, 200, 502),
 ])

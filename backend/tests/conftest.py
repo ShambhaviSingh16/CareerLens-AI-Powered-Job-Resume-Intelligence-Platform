@@ -14,6 +14,7 @@ os.environ["JWT_SECRET"] = "test-only-secret-never-use-in-production"
 os.environ["GROQ_API_KEY"] = "test-only-no-real-network"
 os.environ["ANALYSES_PER_DAY"] = "5"
 os.environ["GLOBAL_ANALYSES_PER_DAY"] = "20"
+os.environ["AUTH_REQUESTS_PER_MINUTE"] = "10000"
 
 from database import get_db
 from main import app
@@ -44,8 +45,15 @@ def client(session_factory):
             yield session
     app.dependency_overrides[get_db] = db_override
     with TestClient(app) as test_client:
+        # Each test gets its own per-process throttle state.
+        app.middleware_stack = None
         yield test_client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
 
 
 @pytest.fixture

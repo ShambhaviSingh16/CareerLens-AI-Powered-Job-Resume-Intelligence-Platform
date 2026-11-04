@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "deployResources": { "value": false },
+    "appName": { "value": "careerlens-demo" },
+    "image": { "value": "ghcr.io/your-user/careerlens:tested-commit-sha" },
+    "databaseUrl": { "value": "REPLACE_LOCALLY_WITH_POSTGRESQL_URL" },
+    "jwtSecret": { "value": "REPLACE_LOCALLY_WITH_RANDOM_SECRET" },
+    "groqApiKey": { "value": "" }
+  }
+}

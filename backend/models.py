@@ -1,13 +1,20 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, JSON
+from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, Text, JSON
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
     pass
+
+
+class DailyUsage(Base):
+    """Anonymous daily total, so account deletion cannot reset the provider budget."""
+    __tablename__ = "daily_usage"
+    day: Mapped[date] = mapped_column(Date, primary_key=True)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class AnalysisAttempt(Base):

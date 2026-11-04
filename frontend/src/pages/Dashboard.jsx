@@ -96,6 +96,7 @@ export default function Dashboard() {
         <ul>{history.map(item => <li key={item.id}><button disabled={busy} onClick={() => openAnalysis(item.id)} className={analysis?.id === item.id ? "selected" : ""}><Icon name="file" size={16}/><span><strong>{item.job_title}</strong><small>{new Date(item.created_at).toLocaleDateString(undefined, {month:"short", day:"numeric"})} · {item.match_score}% fit</small></span></button></li>)}</ul>
       </div>
       <div className="sidebar-bottom"><div className="sidebar-tip"><span className="eyebrow">A SMALL REMINDER</span><p>Your experience is the story.<br/>Your resume is how you tell it.</p></div><button className="logout-button" onClick={() => { sessionStorage.removeItem("token"); navigate("/login", { replace: true }); }}><span className="avatar">Y</span>Your workspace<Icon name="logout" size={17}/><span className="sr-only">Log out</span></button></div>
+      <Link to="/settings" className="account-settings-link">Account & data</Link>
     </aside>
     <div className="workspace-main">
       <header className="workspace-topbar"><span><span className="breadcrumb-root">Workspace</span><span className="breadcrumb-slash">/</span>{analysis ? "Match report" : "New analysis"}</span><Link to="/sample">See an example <Icon size={14}/></Link></header>
